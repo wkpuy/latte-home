@@ -1,0 +1,13 @@
+{
+  "name": "latte-world-3d-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-site.mjs",
+    "start": "python3 -m http.server 8793 --bind 127.0.0.1",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "three": "0.186.0"
+  }
+}

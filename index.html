@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f6f3eb"><title>Latte’s Little Home · บ้าน สวน และเมืองใบชา</title><link rel="icon" href="data:,"><link rel="stylesheet" href="room.css?v=contact21"></head><body>
+<div class="app">
+ <header class="topbar"><a class="brand" href="./"><span class="brand-icon">☕</span><span>Latte’s <em>little home</em><small>A LITTLE HOME. A GROWING WORLD.</small></span></a><div class="top-right"><span id="save-state">กำลังพา Latte กลับบ้าน…</span><div id="time-controls" class="time-controls" aria-label="ความเร็วเวลา"><span>เวลา</span><button data-speed="0">Ⅱ หยุด</button><button data-speed="0.5">½×</button><button data-speed="1">1×</button><button data-speed="2">2×</button></div><div class="wallet">✦ <strong id="coins">25</strong><span>เหรียญ</span></div></div></header>
+ <main>
+  <section class="room" aria-label="บ้านและสวนของ Latte">
+   <div id="stage"></div>
+
+   <div class="camera-tools"><button id="camera-focus" aria-label="โฟกัสลาเต้">◎ หาลาเต้</button><button id="camera-follow" aria-label="กล้องตามลาเต้" aria-pressed="false">ตามน้อง</button><button id="camera-home" aria-label="ดูบ้านทั้งหลัง">↺ ทั้งบ้าน</button></div>
+   <nav id="room-nav" aria-label="ดูมุมห้อง"></nav>
+   <div id="bubble" role="status" aria-live="polite" aria-atomic="true"></div><div id="hearts" aria-hidden="true"></div><div id="object-menu" hidden aria-live="polite"></div>
+   <div class="activity"><div><strong id="activity-title">กำลังพักผ่อน</strong><small id="activity-detail">แตะพื้นเพื่อเดิน</small><progress id="activity-progress" max="100" hidden></progress></div><button id="cancel-action" hidden>ยกเลิก</button></div>
+   <div class="room-tip">แตะพื้นเพื่อเดิน · ชี้แล้วเลื่อนล้อเพื่อซูม · หาน้องไม่เจอ กด ◎</div>
+   <button id="care-toggle" aria-controls="care-dock" aria-expanded="false">♡ ดูแลน้อง</button><div id="care-dock" class="care-dock" aria-label="ดูแล Latte" hidden><button id="feed"><span>🍪</span><strong>ไปกินขนม</strong><small>ที่ห้องครัว</small></button><button id="pet"><span>♡</span><strong>ลูบหัว</strong><small>อยู่ด้วยกัน</small></button><button id="sleep"><span>☾</span><strong id="sleep-label">เข้านอน</strong><small>ที่ห้องนอน</small></button><button id="play-game"><span>✦</span><strong>เล่นด้วยกัน</strong><small>รับคุกกี้ · ได้เหรียญ</small></button></div><p id="error" role="alert"></p>
+  </section>
+  <aside class="sidebar">
+   <div class="room-heading"><span class="eyebrow">OUR EVERYDAY, TOGETHER</span><h1>บ้านเล็ก ๆ ของลาเต้</h1><p id="greeting">กำลังเปิดประตูบ้าน…</p><div id="clock" class="clock">☀ วันที่ 1 · 08:00</div><div id="weather-label" class="weather-label">☀️ ท้องฟ้าแจ่มใส</div></div>
+   <details class="view-panel panel"><summary>มุมมองและวิธีใช้กล้อง</summary><div id="view-navigation"></div><p>ชี้เมาส์แล้วเลื่อนล้อเพื่อซูมตรงนั้น · ลากเพื่อหมุน · คลิกขวาค้างแล้วลากเพื่อเลื่อนมุมมอง · มือถือใช้สองนิ้วเลื่อนหรือถ่างซูม</p></details>
+   <section class="wellbeing"><div class="section-top"><span class="eyebrow">A DAY IN LATTE’S LIFE</span><span id="location" class="live-dot">อยู่บ้าน</span></div><h2>วันนี้ลาเต้เป็นยังไง</h2><button id="auto-life" class="auto-life" aria-pressed="true">✦ ใช้ชีวิตเอง · เปิด</button>
+    <div class="need"><label for="food-bar">🍪 ความอิ่ม <b id="food-value"></b></label><progress id="food-bar" max="100"></progress></div>
+    <div class="need joy"><label for="joy-bar">♡ ความสุข <b id="joy-value"></b></label><progress id="joy-bar" max="100"></progress></div>
+    <div class="need energy"><label for="energy-bar">☾ พลังงาน <b id="energy-value"></b></label><progress id="energy-bar" max="100"></progress></div>
+    <div class="need hygiene"><label for="hygiene-bar">💧 ความสะอาด <b id="hygiene-value"></b></label><progress id="hygiene-bar" max="100"></progress></div>
+    <div class="need social"><label for="social-bar">☻ ความใกล้ชิด <b id="social-value"></b></label><progress id="social-bar" max="100"></progress></div>
+    <section class="mood-panel panel"><div class="mood-head"><strong>💭 อารมณ์ของลาเต้</strong><small id="schedule-label"></small></div><p id="schedule-reason" class="panel-note"></p><div id="moodlets"></div></section>
+   </section>
+   <details open class="panel"><summary><span>🏠 กิจกรรมในบ้าน</span><small>4 ห้อง · กิจกรรมในบ้าน</small></summary><div id="fixture-actions"></div><p class="panel-note">เลือกกิจกรรมเพิ่มเพื่อเข้าคิว · กดยกเลิกเพื่อหยุดกิจกรรมปัจจุบัน</p></details>
+   <details class="panel" id="garden-panel"><summary><span>🌱 สวนเล็ก ๆ</span><small>ปลูก → รดน้ำ → เก็บ</small></summary><label class="crop-label" for="crop-choice">เลือกเมล็ดที่จะปลูก</label><select id="crop-choice"></select><div id="plots"></div><p class="panel-note">มีเมล็ดเริ่มต้นให้แล้ว · รดน้ำครั้งเดียวก็โตต่อได้ แม้ปิดหน้าเกม</p><h3>กระเป๋า & ร้านเมล็ด</h3><div id="crop-shop"></div><p class="panel-note">ปุ่มขายจะขายผลผลิตชนิดนั้นทั้งหมด</p></details>
+   <details class="panel shop"><summary><span>🎁 ของขวัญให้บ้าน</span><small>ของที่ซื้อไว้ยังอยู่ครบ</small></summary><div id="shop-items"></div><button id="remove-hat" class="text-button">ถอดหมวก</button></details>
+   <section class="memory"><span>🏆</span><div><strong>ความทรงจำเล็ก ๆ</strong><p>สถิติรับคุกกี้ <b id="best">0</b> ชิ้น</p></div></section><footer>หนึ่งวันในบ้าน ≈ 24 นาทีของเรา<br><a href="studio.html">เปิดห้องทดลองท่าทาง ↗</a></footer>
+  </aside>
+ </main>
+</div>
+<dialog id="cookie-dialog"><div class="game-top"><div><span class="eyebrow">COOKIE RAIN</span><h2>รับขนมให้น้องหน่อย!</h2></div><button id="close-game" aria-label="ปิดเกม">×</button></div><p id="game-instruction">ขยับตะกร้าด้วยเมาส์ นิ้ว หรือปุ่ม ← → รับคุกกี้ใน 30 วินาที</p><div class="game-numbers"><span>🍪 <b id="score">0</b> ชิ้น</span><span>☷ <b id="timer">30</b> วินาที</span></div><canvas id="cookie-canvas" width="600" height="380" tabindex="0" aria-label="เกมรับคุกกี้ ใช้ลูกศรซ้ายขวาเลื่อนตะกร้า"></canvas><p id="game-result" role="status">ทุกชิ้นที่รับได้ แลกเป็น 2 เหรียญ · สูงสุด 50 เหรียญต่อรอบ</p><button id="start-game" class="primary">เริ่มรับคุกกี้</button></dialog>
+<div hidden aria-hidden="true"><select id="revision"><option value="after"></option><option value="r04"></option><option value="before"></option></select><div id="actions"></div><div id="faces"></div><button id="front"></button><button id="reset"></button><button id="ears"></button><select id="outfit"><option value="none"></option><option value="sage"></option><option value="rose"></option></select><select id="wardrobe"><option value="overalls"></option><option value="none"></option></select><select id="shading"><option value="soft"></option><option value="original"></option></select><input id="speed" value="1"><span id="status"></span></div>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script><script type="module" src="room.js?v=contact21"></script></body></html>

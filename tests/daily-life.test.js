@@ -1,0 +1,8 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {initial,restore} from '../room-state.js';import {MEALS,FISH,EMOTIONS,menuFor,cookMeal,eatMeal,catchFish,feel,feeling,level} from '../daily-life-state.js';
+import {FISHING_POND} from '../pond-layout.js';
+import {findPath,START} from '../house-layout.js';
+test('meals rotate by time and day; cook then eat once and persist',()=>{const s=initial(100);const a=menuFor(s);s.minute=750;assert.notEqual(menuFor(s).id,a.id);s.minute=480;s.day++;assert.notEqual(menuFor(s).id,a.id);assert(cookMeal(s,a.id));assert.equal(s.daily.dishes[a.id],1);assert.equal(restore(JSON.stringify(s),100).daily.dishes[a.id],1);assert(eatMeal(s,a.id));assert(!eatMeal(s,a.id));});
+test('fish recipes consume the correct species once; practice improves skills',()=>{const s=initial();assert(!cookMeal(s,'fish-perch'));for(const f of FISH){s.daily.fish[f.id]=1;assert(cookMeal(s,'fish-'+f.id));assert.equal(s.daily.fish[f.id],0);}assert(level(s.daily.cookingXP)>1);for(let i=0;i<12;i++)catchFish(s,()=>0);assert.equal(s.daily.fish.tilapia,12);assert(level(s.daily.fishingXP)>1);});
+test('failed fishing has practice but no catch; emotions expire and validate saves',()=>{const s=initial(100);assert.equal(catchFish(s,()=>.999),null);assert.equal(s.daily.fishingXP,1);assert.equal(feeling(s).id,'regret');for(const id of Object.keys(EMOTIONS)){feel(s,id);assert.equal(restore(JSON.stringify(s),100).daily.emotion.id,id);}s.minute+=91;assert.equal(feeling(s).id,'happy');});
+test('table and pond have reachable approaches',()=>{assert(findPath(START,{x:1.25,z:.85}));assert(findPath(START,FISHING_POND.anchor));});

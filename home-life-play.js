@@ -1,0 +1,34 @@
+import {HOME_ACTIONS,THEMES,homeBlock,doHome,favorite,prefer,takeStored} from './home-life-state.js?v=contact21';
+import {MEALS,feel} from './daily-life-state.js?v=contact21';
+import {FIXTURES,roomAt} from './house-layout.js?v=contact21';
+import {remember,HOBBIES} from './living-state.js?v=contact21';
+import {createHomeLifeScene} from './home-life-scene.js?v=contact21';
+export function setupHomeLife(s,d,house,actor,{start,say,save,getTask,dine}){
+ const scene=createHomeLifeScene(d,house,actor),$=id=>document.getElementById(id);
+ const panel=document.createElement('details');panel.id='home-life-panel';panel.className='panel';panel.innerHTML='<summary>🧺 ชีวิตในบ้าน</summary><p id="home-condition" class="panel-note"></p><div id="home-life-actions" class="leisure-actions"></div><p id="home-letter" class="panel-note"></p><p id="latte-preferences" class="panel-note"></p>';document.querySelector('.wellbeing').after(panel);
+ for(const a of HOME_ACTIONS){const b=document.createElement('button');b.dataset.homeAction=a.id;b.textContent=a.icon+' '+a.name;b.onclick=()=>act(a.id);$('home-life-actions').append(b);}
+ const pantry=document.createElement('details');pantry.className='panel';pantry.id='pantry-panel';pantry.innerHTML='<summary>🧊 ในตู้เย็น</summary><p id="pantry-status" class="panel-note"></p><div id="stored-meals" class="leisure-actions"></div><button id="pantry-store">เก็บอาหารที่ทำไว้</button><button id="pantry-restock">ไปซื้อวัตถุดิบ 6 มื้อ · 5 เหรียญ</button>';panel.after(pantry);
+ $('pantry-store').onclick=()=>act('store');$('pantry-restock').onclick=()=>act('restock');
+ for(const m of MEALS){const b=document.createElement('button');b.dataset.storedMeal=m.id;b.onclick=()=>{const f=FIXTURES.find(f=>f.id==='fridge');start({...f,action:'หยิบ'+m.name,meal:m.id,mode:'Idle',duration:5,effects:null,validate:()=>s.home.stored[m.id]>0,complete:()=>takeStored(s,m.id),next:()=>dine(m.id)});};$('stored-meals').append(b);}
+ const decor=document.createElement('details');decor.className='panel';decor.id='decor-panel';decor.innerHTML='<summary>🎨 แต่งบ้านของเรา</summary><p class="panel-note">สีเปลี่ยนทันทีและบันทึกให้ · เปลี่ยนได้ฟรี</p><label>ธีม <select id="home-theme"></select></label><label>รูปภาพ <select id="home-art-style"><option value="flower">ดอกไม้</option><option value="sun">ดวงอาทิตย์</option><option value="mountains">ภูเขา</option></select></label><div id="decor-colors"></div>';pantry.after(decor);
+ for(const [id,t]of Object.entries(THEMES))$('home-theme').add(new Option(t.name,id));$('home-theme').value=s.home.decor.theme;
+ $('home-art-style').value=s.home.decor.artStyle;$('home-art-style').onchange=e=>{s.home.decor.artStyle=e.target.value;scene.applyDecor(s);save();};
+ const names={wall:'ผนัง',floor:'พื้น',curtain:'ผ้าม่าน',bed:'ผ้าปูเตียง',rug:'พรม',art:'รูปภาพ'};
+ for(const [id,name]of Object.entries(names)){const l=document.createElement('label');l.textContent=name;const input=document.createElement('input');input.type='color';input.id='decor-'+id;input.value=s.home.decor[id];input.oninput=()=>{s.home.decor[id]=input.value;scene.applyDecor(s);save();};l.append(input);$('decor-colors').append(l);}
+ $('home-theme').onchange=e=>{const theme=e.target.value;s.home.decor={theme,artStyle:{warm:'sun',garden:'flower',bakery:'mountains'}[theme],...THEMES[theme]};$('home-art-style').value=s.home.decor.artStyle;for(const id of Object.keys(names))$('decor-'+id).value=s.home.decor[id];scene.applyDecor(s);save();};
+ function act(id,manual=true){const a=HOME_ACTIONS.find(a=>a.id===id);if(!a)return false;const reason=homeBlock(s,id);if(reason){if(manual)say(reason);return false;}
+  const f=FIXTURES.find(f=>f.id===a.where),anchor=f?.anchor??(a.where==='garden'?{x:-1.3,z:4.5}:a.where==='market'?{x:-4.5,z:12}:{x:-2.1,z:-3.25}),look=f?.look??(a.where==='garden'?{x:-1.3,z:5.1}:a.where==='market'?{x:-4.5,z:10}:{x:-2.1,z:-4});
+  return start({id:'home-'+id,fixtureId:f?.id,anchor:{...anchor},look:{...look},name:a.name,action:a.name,mode:'Idle',duration:a.duration,emotion:id==='nap'?'':'Happy',validate:()=>!homeBlock(s,id),effects:a.effect,complete:()=>{const ok=doHome(s,id);if(ok){remember(s,'home',a.name+'เรียบร้อย',id);if(id==='mail'){say(s.home.mailText);feel(s,'love','เพื่อนส่งจดหมายมาหา');}if(id==='brush'||id==='ears')feel(s,'happy','ขนและหูสะอาด สบายตัวจัง');}return ok;}},manual);
+ }
+ function completed(task){const h=s.home;if(task.id==='bed'){h.bedMess=1;h.laundry=Math.min(6,h.laundry+1);}if(task.id==='shower'){h.wet=1;h.laundry=Math.min(6,h.laundry+1);}if(task.neighborId)prefer(s,'friend',task.neighborId);if(task.id.startsWith('hobby-'))prefer(s,'hobby',task.id.slice(6));if(['sofa','bed','home-nap','home-mail','home-brush'].includes(task.id)||task.id.startsWith('hobby-'))prefer(s,'place',task.anchor.z>3?'garden':task.anchor.x<0?task.anchor.z<-.5?'bedroom':'living':task.anchor.z<-.5?'bathroom':'kitchen');}
+ function render(){const h=s.home;$('home-condition').textContent=`เตียง${h.bedMess?'ยับ':'เรียบร้อย'} · ผ้ารอซัก ${h.laundry} · ${h.drying>0?'ผ้าจะแห้งอีก '+Math.ceil(h.drying)+' นาทีเกม':h.dryClothes?'ผ้าแห้งแล้ว':'ราวว่าง'} · พื้น${h.wet>0?'เปียก':'แห้ง'}`;$('home-letter').textContent=h.mailText;
+  const meal=MEALS.find(m=>m.id===favorite(s,'meal'))?.name??'ยังลองอยู่',hobby=HOBBIES.find(h=>h.id===favorite(s,'hobby'))?.name??'ยังลองอยู่',place={living:'ห้องนั่งเล่น',bedroom:'ห้องนอน',bathroom:'ห้องน้ำ',kitchen:'ห้องครัว',garden:'สวน'}[favorite(s,'place')]??'ยังไม่มี',friend={milo:'ไมโล',poppy:'ป๊อปปี้'}[favorite(s,'friend')]??'ยังไม่มี';$('latte-preferences').textContent=`ชอบกิน ${meal} · ชอบ ${hobby} · มุมโปรด ${place} · คิดถึง ${friend}`;
+  for(const a of HOME_ACTIONS){const b=document.querySelector('[data-home-action='+a.id+']');b.disabled=!!homeBlock(s,a.id);b.title=homeBlock(s,a.id)||a.name;}
+  $('pantry-status').textContent=`วัตถุดิบพื้นฐาน ${h.provisions} มื้อ${h.provisions<=2?' · ใกล้หมดแล้ว':''} · อาหารที่ทำไว้ ${Object.values(s.daily.dishes).reduce((a,b)=>a+b,0)} จาน`;
+  for(const m of MEALS){const b=document.querySelector('[data-stored-meal="'+m.id+'"]');b.hidden=!h.stored[m.id];b.textContent='หยิบ '+m.name+' · '+(h.stored[m.id]??0);}
+  $('pantry-store').disabled=!!homeBlock(s,'store');$('pantry-restock').disabled=!!homeBlock(s,'restock');
+ }
+ function auto(){if(s.energy<35)return false;if(s.food<45&&s.home.provisions===0&&!homeBlock(s,'restock'))return act('restock',false);if(s.energy>45&&s.food>50&&s.social>25&&s.hygiene>40){const id=s.home.wet>.5?'mop':s.home.dryClothes?'collect':s.home.laundry>=2?'laundry':s.home.bedMess?'makebed':null;if(id&&!homeBlock(s,id))return act(id,false);}return false;}
+ function openPantry(){pantry.open=true;pantry.scrollIntoView({block:'nearest',behavior:'smooth'});}
+ render();scene.update(s,null,0,0);return {...scene,act,completed,render,auto,openPantry};
+}

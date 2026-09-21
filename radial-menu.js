@@ -1,0 +1,6 @@
+export function radialMenu(title,actions){
+ const menu=document.getElementById('object-menu');menu.replaceChildren();menu.className='radial-menu';menu.setAttribute('role','menu');menu.setAttribute('aria-label',title);
+ const label=document.createElement('strong');label.textContent=title;const close=document.createElement('button');close.className='radial-close';close.textContent='×';close.setAttribute('aria-label','ปิดเมนู');close.onclick=()=>menu.hidden=true;menu.append(label,close);
+ actions.forEach((action,i)=>{const b=document.createElement('button');b.textContent=action.label;b.setAttribute('role','menuitem');const a=-Math.PI/2+i/actions.length*Math.PI*2;b.style.setProperty('--x',Math.cos(a)*105+'px');b.style.setProperty('--y',Math.sin(a)*105+'px');b.onclick=()=>{menu.hidden=true;action.run();};menu.append(b);});menu.hidden=false;
+ menu.onkeydown=e=>{const buttons=[...menu.querySelectorAll('[role=menuitem]')],i=buttons.indexOf(document.activeElement);if(e.key==='Escape'){menu.hidden=true;document.querySelector('#stage canvas').focus();}if(['ArrowRight','ArrowDown','ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();buttons[(i+(['ArrowLeft','ArrowUp'].includes(e.key)?-1:1)+buttons.length)%buttons.length].focus();}};
+}
