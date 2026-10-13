@@ -16,4 +16,5 @@ await mkdir(path.join(dist,'assets'),{recursive:true});
 for(const name of ['latte-r03.glb','latte-r04.glb','latte-r13.glb'])await cp(path.join(root,'assets',name),path.join(dist,'assets',name));
 for(const name of ['build','examples/jsm','LICENSE'])await cp(path.join(root,'node_modules/three',name),path.join(dist,'vendor/three',name),{recursive:true});
 await writeFile(path.join(dist,'.nojekyll'),'');
+await cp(path.join(root,'manifest.webmanifest'),path.join(dist,'manifest.webmanifest'));
 console.log('Website ready in dist/ (relative URLs support GitHub project pages).');

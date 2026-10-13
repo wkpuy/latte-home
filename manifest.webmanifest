@@ -1,0 +1,12 @@
+{
+  "id": "./",
+  "name": "Latte’s Little Home",
+  "short_name": "Latte Home",
+  "description": "บ้าน สวน และเมืองใบชาของลาเต้",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#f6f3eb",
+  "theme_color": "#f6f3eb"
+}
