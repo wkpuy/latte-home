@@ -12,7 +12,7 @@ import {weatherFor} from './weather-state.js?v=contact21';
 import {setupFarm} from './farm-play.js?v=contact21';
 import './main.js?v=contact21';
 import * as T from 'three';
-import {initial,restore,advance,purchase,ITEMS,SAVE_KEY,NEEDS,CROPS,applyEffects,buySeed,plant,water,harvest,sellProduce,plotStatus} from './room-state.js?v=contact21';
+import {initial,restore,advance,syncClock,purchase,ITEMS,SAVE_KEY,NEEDS,CROPS,applyEffects,buySeed,plant,water,harvest,sellProduce,plotStatus} from './room-state.js?v=real-time1';
 import {ROOMS,FIXTURES,BASE_FIXTURES,PLOTS,setFurnitureAngles,setFurnitureLayout,walkable,findPath,roomAt} from './house-layout.js?v=contact21';
 import {createHouse} from './house-scene.js?v=contact21';
 import {setupCookieGame} from './cookie-game.js?v=contact21';
@@ -21,7 +21,7 @@ import {createTown} from './town-scene.js?v=contact21';
 import {setupTownPlay} from './town-play.js?v=contact21';
 const $=id=>document.getElementById(id),d=window.latteDemo;
 if(!d)throw new Error('Latte could not load');
-let s;try{s=restore(localStorage.getItem(SAVE_KEY));}catch{s=initial();}
+let s;try{s=restore(localStorage.getItem(SAVE_KEY),Date.now(),{realTime:true});}catch{s=initial();}syncClock(s);
 if(!setFurnitureLayout(Object.fromEntries(FIXTURES.map(f=>[f.id,{...(s.furniture?.[f.id]??{}),angle:s.rotations[f.id]??s.furniture?.[f.id]?.angle??0}])),s.position)){s.rotations={};s.furniture={};setFurnitureAngles({});}
 s.furniture=Object.fromEntries(FIXTURES.map(f=>{const b=BASE_FIXTURES.find(x=>x.id===f.id);return [f.id,{x:f.x-b.x,z:f.z-b.z,angle:(f.angle??0)*180/Math.PI}]}));
 const house=createHouse(d),actor=new T.Group();d.scene.add(actor);actor.add(d.root);actor.position.set(s.position.x,0,s.position.z);
@@ -109,7 +109,7 @@ for(const f of FIXTURES){const b=document.createElement('button');b.dataset.fixt
 const washDishesButton=document.createElement('button');washDishesButton.id='wash-dishes';washDishesButton.innerHTML='<span>🍽️</span><span><strong>ล้างจาน</strong><small>จานที่ใช้แล้ว</small></span><span>↗</span>';washDishesButton.onclick=()=>{const f=FIXTURES.find(f=>f.id==='sink');start({...f,action:'ล้างจาน',carry:'plate',duration:8,validate:()=>s.daily.dirtyDishes>0,complete:()=>daily.clean()});};$('fixture-actions').append(washDishesButton);
 const careToggle=$('care-toggle'),careDock=$('care-dock');function closeCare(){careDock.hidden=true;careToggle.setAttribute('aria-expanded','false');}careToggle.onclick=()=>{careDock.hidden=!careDock.hidden;careToggle.setAttribute('aria-expanded',String(!careDock.hidden));};careDock.addEventListener('click',e=>{if(e.target.closest('button'))closeCare();});document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCare();$('object-menu').hidden=true;}});$('stage').addEventListener('pointerdown',()=>{closeCare();$('object-menu').hidden=true;});
 $('cancel-action').onclick=()=>{stopCurrent();say('พักไว้ก่อน ไปทำอย่างอื่นกัน');};$('feed').onclick=()=>useFixture('fridge');$('pet').onclick=pet;$('sleep').onclick=()=>task?.id==='bed'?stopCurrent():useFixture('bed');
-$('time-controls').addEventListener('click',e=>{const b=e.target.closest('[data-speed]');if(!b)return;s.timeScale=Number(b.dataset.speed);document.querySelectorAll('#time-controls [data-speed]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));save();say(`ปรับเวลาเป็น ${b.textContent} แล้ว`);});
+ $('time-controls').addEventListener('click',e=>{const b=e.target.closest('[data-speed]');if(!b)return;s.timeScale=Number(b.dataset.speed);document.querySelectorAll('#time-controls [data-speed]').forEach(x=>x.setAttribute('aria-pressed',String(Number(x.dataset.speed)===s.timeScale)));save();say(s.timeScale?'เริ่มเวลาชีวิตจริงแล้ว':'พักการจำลองไว้ก่อน');});
 $('auto-life').onclick=()=>{s.autoLife=!s.autoLife;if(!s.autoLife&&task&&!task.manual)cancel(false);nextAuto=Date.now()+3000;render();save();};
 for(const item of ITEMS){const row=document.createElement('div');row.className='item';row.innerHTML=`<span class="item-icon">${item.icon}</span><div class="item-info"><strong>${item.name}</strong><small>${item.description}</small></div><button data-buy="${item.id}"></button>`;$('shop-items').append(row);row.querySelector('button').onclick=()=>{if(purchase(s,item.id)){equip();render();save();say('ของขวัญชิ้นนี้น่ารักจัง ♡');}};}
 $('remove-hat').onclick=()=>{s.hat='none';equip();render();save();};
@@ -117,6 +117,7 @@ for(const c of CROPS){const option=document.createElement('option');option.value
 $('crop-choice').onchange=e=>selectedCrop=e.target.value;
 PLOTS.forEach(p=>{const b=document.createElement('button');b.dataset.plot=p.id;b.onclick=()=>plotAction(p.id);$('plots').append(b);});
 function render(){
+ syncClock(s);
  if($('wash-dishes'))$('wash-dishes').disabled=!s.daily.dirtyDishes;
  townPlay?.render();farm?.render();daily?.render();living?.render();homeLife?.render();
  $('queue-count').textContent=actionQueue.length;queuePanel.hidden=!actionQueue.length;
@@ -153,7 +154,7 @@ canvas.setAttribute('role','application');canvas.setAttribute('aria-label','ฉ�
 const freeCamera=()=>{follow=false;$('camera-follow').setAttribute('aria-pressed','false');};canvas.addEventListener('wheel',freeCamera,{passive:true});
 canvas.addEventListener('pointerdown',e=>{if(e.button!==0||!e.isPrimary){down=null;freeCamera();return;}down={x:e.clientX,y:e.clientY};});canvas.addEventListener('pointercancel',()=>down=null);
 canvas.addEventListener('pointerup',e=>{if(e.button!==0||!down)return;const moved=Math.hypot(e.clientX-down.x,e.clientY-down.y);down=null;if(moved>7||game.open)return;const rect=canvas.getBoundingClientRect();ray.setFromCamera(new T.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),d.camera);const hits=ray.intersectObjects([...house.targets,...town.targets,...daily.targets,d.model,...house.floors,...town.floors],true);const hit=hits.find(h=>{for(let node=h.object;node;node=node.parent)if(!node.visible)return false;return true;});if(!hit)return;let o=hit.object;while(o){if(o.userData.homeAction){if(o.userData.homeAction==='clothesline')radialMenu('ราวตากผ้า',[{label:'👕 ซักและตาก',run:()=>homeLife.act('laundry')},{label:'🧺 เก็บผ้า',run:()=>homeLife.act('collect')}]);else radialMenu('ดูแลบ้าน',[{label:{window:'🪟 เปิด / ปิด',laundry:'👕 ซักผ้า',mop:'🧽 เช็ดพื้น'}[o.userData.homeAction],run:()=>homeLife.act(o.userData.homeAction)}]);return;}if(o.userData.daily){if(o.userData.daily==='fish')daily.fish();else {const ready=Object.entries(s.daily.dishes).find(([,n])=>n>0);if(ready)daily.dine(ready[0]);else daily.cook();}return;}if(o.userData.wardrobe){openWardrobe();return;}if(o.userData.paddy!==undefined){farm.act(o.userData.paddy);return;}if(o.userData.town){townPlay.visit(o.userData.town);return;}if(o.userData.fixture){if(furniture.open)furniture.select(o.userData.fixture);else showObjectMenu(o.userData.fixture);return;}if(o.userData.plot!==undefined){plotAction(o.userData.plot);return;}if(o===d.model){showActorMenu();return;}o=o.parent;}const p={x:hit.point.x,z:hit.point.z};if(walkable(p))start({id:'walk',name:roomAt(p),action:'เดิน',anchor:p,duration:0});else say('เลือกพื้นว่างที่เดินถึงได้เลยนะ');});
-d.setWorldFrame((dt,time)=>{if(document.hidden)return;if(dt>0){advance(s,dt/(s.timeScale||1));saveElapsed+=dt;if(saveElapsed>=10){save();saveElapsed=0;}}
+d.setWorldFrame((dt,time)=>{if(document.hidden)return;syncClock(s);if(dt>0){advance(s,dt/(s.timeScale||1),{clock:false,rate:1/60});saveElapsed+=dt;if(saveElapsed>=10){save();saveElapsed=0;}}
  if(dt>0&&task?.phase==='walking'&&task.neighborId){const p=town.neighborPosition(task.neighborId);if(p){task.look=p;if(Math.hypot(p.x-actor.position.x,p.z-actor.position.z)<1.8){task.anchor={x:actor.position.x,z:actor.position.z};task.path=[];}else if((task.repath??0)<=time){task.repath=time+.5;const candidates=[{x:p.x,z:p.z-1.2},{x:p.x-1.2,z:p.z},{x:p.x+1.2,z:p.z},{x:p.x,z:p.z+1.2}];for(const dest of candidates){const path=findPath({x:actor.position.x,z:actor.position.z},dest);if(path){task.anchor=dest;task.path=path;break;}}}}}
  if(task?.phase==='walking'){const walkingPace=s.energy<35?.62:s.joy<30?.82:1;d.clips.Walk_Test?.setEffectiveTimeScale(walkingPace);let travel=dt*1.7*walkingPace;while(travel>0&&task?.path.length){const p=task.path[0],dx=p.x-actor.position.x,dz=p.z-actor.position.z,dist=Math.hypot(dx,dz);actor.rotation.set(0,Math.atan2(dx,dz),0);if(dist<=travel){actor.position.set(p.x,0,p.z);task.path.shift();travel-=dist;}else{actor.position.x+=dx/dist*travel;actor.position.z+=dz/dist*travel;travel=0;}}syncPosition();if(dt>0&&task&&!task.path.length)begin();}
  else if(task?.phase==='doing'){task.remaining-=dt;if(task.remaining<=0)leaveActivity(complete);}
@@ -173,7 +174,7 @@ d.setPoseFrame((dt,time)=>{if(dt<=0)return;
  }
  motion.update(task);daily?.update(s,task,dt);living?.update(task,dt,time);homeLife?.update(s,task,dt,time);motion.contacts(task,true);
 });
-function tick(){lastTick=Date.now();if(!document.hidden)render();}
+function tick(){lastTick=Date.now();if(!document.hidden){syncClock(s);render();}}
 setInterval(tick,1000);
 addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{tick();if(document.hidden){save();}else{manualUntil=Date.now()+5000;nextQueued();}});
 // A read-only snapshot supports diagnostics without allowing UI tests to mutate the game.
