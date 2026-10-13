@@ -1,2 +1,2 @@
 // Keep the original entry point for existing bookmarks.
-import './home-game.js?v=real-time1';
+import './home-game.js?v=real-time2';
